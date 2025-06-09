@@ -1,0 +1,12 @@
+app:
+  name: alphaflow
+  log_level: WARNING
+
+database:
+  host: prod-db
+  port: 5432
+  name: alphaflow
+
+redis:
+  host: prod-redis
+  port: 6379
