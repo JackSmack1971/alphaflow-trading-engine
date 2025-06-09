@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package shared;
+
+option go_package = "github.com/alphaflow/shared/generated/go";
+
+import "google/protobuf/timestamp.proto";
+
+enum OrderSide {
+  SIDE_BUY = 0;
+  SIDE_SELL = 1;
+}
+
+message Order {
+  string id = 1;
+  string symbol = 2;
+  OrderSide side = 3;
+  string quantity = 4; // decimal
+  string price = 5;    // decimal
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+enum SignalAction {
+  ACTION_BUY = 0;
+  ACTION_SELL = 1;
+  ACTION_HOLD = 2;
+}
+
+message TradingSignal {
+  string symbol = 1;
+  SignalAction action = 2;
+  string quantity = 3; // decimal
+  string price = 4;    // decimal
+  google.protobuf.Timestamp timestamp = 5;
+}

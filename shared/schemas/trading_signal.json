@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TradingSignal",
+  "type": "object",
+  "properties": {
+    "symbol": {"type": "string", "pattern": "^[A-Z]{3,5}/[A-Z]{3,5}$"},
+    "action": {"type": "string", "enum": ["BUY", "SELL", "HOLD"]},
+    "quantity": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?$"},
+    "price": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?$"},
+    "timestamp": {"type": "string", "format": "date-time"}
+  },
+  "required": ["symbol", "action", "quantity", "price", "timestamp"],
+  "additionalProperties": false
+}

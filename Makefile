@@ -1,4 +1,4 @@
-.PHONY: setup lint test validate-structure docker-up
+.PHONY: setup lint test validate-structure docker-up generate-protos test-shared
 
 setup:
 	pip install --upgrade pip
@@ -16,3 +16,9 @@ validate-structure:
 
 docker-up:
 	docker compose up --build
+
+generate-protos:
+	bash tools/scripts/generate_protos.sh
+
+test-shared:
+	PYTHONPATH=. pytest --cov=shared --cov-report=term-missing
