@@ -1,4 +1,4 @@
-.PHONY: setup lint test validate-structure docker-up generate-protos test-shared
+.PHONY: setup lint test validate-structure docker-up generate-protos test-shared validate-config test-vault-integration
 
 setup:
 	pip install --upgrade pip
@@ -21,4 +21,8 @@ generate-protos:
 	bash tools/scripts/generate_protos.sh
 
 test-shared:
-	PYTHONPATH=. pytest --cov=shared --cov-report=term-missing
+        PYTHONPATH=. pytest --cov=shared --cov-report=term-missing
+validate-config:
+	PYTHONPATH=. python tools/config-validator.py
+test-vault-integration:
+	PYTHONPATH=. pytest tests/config/test_vault.py --cov=shared/config --cov-report=term-missing

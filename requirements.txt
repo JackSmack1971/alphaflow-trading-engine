@@ -3,3 +3,7 @@ pytest
 pytest-cov
 grpcio-tools
 jsonschema
+pyyaml
+hvac
+watchdog
+pytest-asyncio
