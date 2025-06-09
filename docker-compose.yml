@@ -1,0 +1,68 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  redis:
+    image: redis:7
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redisdata:/data
+  influxdb:
+    image: influxdb:2
+    environment:
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+    volumes:
+      - influxdb:/var/lib/influxdb2
+  market-data:
+    build: ./services/market-data
+    env_file: .env
+    depends_on:
+      - redis
+  strategy-engine:
+    build: ./services/strategy-engine
+    env_file: .env
+    depends_on:
+      - market-data
+  order-execution:
+    build: ./services/order-execution
+    env_file: .env
+    depends_on:
+      - strategy-engine
+  risk-manager:
+    build: ./services/risk-manager
+    env_file: .env
+    depends_on:
+      - order-execution
+  gateway:
+    build: ./services/gateway
+    env_file: .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - risk-manager
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./infrastructure/docker/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+  loki:
+    image: grafana/loki
+    ports:
+      - "3100:3100"
+volumes:
+  pgdata:
+  redisdata:
+  influxdb:
