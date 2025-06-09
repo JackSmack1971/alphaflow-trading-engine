@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Order",
+  "type": "object",
+  "properties": {
+    "id": {"type": "string"},
+    "symbol": {"type": "string", "pattern": "^[A-Z]{3,5}/[A-Z]{3,5}$"},
+    "side": {"type": "string", "enum": ["BUY", "SELL"]},
+    "quantity": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?$"},
+    "price": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?$"},
+    "timestamp": {"type": "string", "format": "date-time"}
+  },
+  "required": ["id", "symbol", "side", "quantity", "price", "timestamp"],
+  "additionalProperties": false
+}

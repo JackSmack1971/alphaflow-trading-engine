@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RiskParameters",
+  "type": "object",
+  "properties": {
+    "symbol": {"type": "string", "pattern": "^[A-Z]{3,5}/[A-Z]{3,5}$"},
+    "max_position": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?$"},
+    "max_drawdown": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?$"}
+  },
+  "required": ["symbol", "max_position", "max_drawdown"],
+  "additionalProperties": false
+}

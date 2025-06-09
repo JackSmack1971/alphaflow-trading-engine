@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package shared;
+
+option go_package = "github.com/alphaflow/shared/generated/go";
+
+import "google/protobuf/timestamp.proto";
+
+message MarketTick {
+  string symbol = 1;
+  string exchange = 2;
+  string bid = 3;  // decimal as string
+  string ask = 4;  // decimal as string
+  string last = 5; // decimal as string
+  google.protobuf.Timestamp timestamp = 6;
+}

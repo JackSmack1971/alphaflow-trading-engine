@@ -82,3 +82,6 @@ coverage/
 .DS_Store
 *.swp
 
+# Generated protocol buffers
+shared/generated/
+

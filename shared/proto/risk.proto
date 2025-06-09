@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package shared;
+
+option go_package = "github.com/alphaflow/shared/generated/go";
+
+import "google/protobuf/timestamp.proto";
+
+message RiskParameters {
+  string symbol = 1;
+  string max_position = 2; // decimal
+  string max_drawdown = 3; // decimal
+}
+
+message RiskAssessment {
+  string symbol = 1;
+  bool allowed = 2;
+  string reason = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}

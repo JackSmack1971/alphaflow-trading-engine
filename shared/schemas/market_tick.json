@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MarketTick",
+  "type": "object",
+  "properties": {
+    "symbol": {"type": "string", "pattern": "^[A-Z]{3,5}/[A-Z]{3,5}$"},
+    "exchange": {"type": "string"},
+    "bid": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?$"},
+    "ask": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?$"},
+    "last": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?$"},
+    "timestamp": {"type": "string", "format": "date-time"}
+  },
+  "required": ["symbol", "exchange", "bid", "ask", "last", "timestamp"],
+  "additionalProperties": false
+}
