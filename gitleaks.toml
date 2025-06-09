@@ -1,0 +1,8 @@
+[allowlist]
+  description = "Allow listed paths"
+  paths = ["docs/*", "**/tests/**"]
+
+[[rules]]
+  description = "Generic API Key"
+  regex = '''(?i)(api_key|secret|password|token)[^\n]{0,20}['"][0-9a-zA-Z]{32,}['"]'''
+  tags = ["apikey"]
