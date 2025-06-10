@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import os
 import time
+import asyncio
 from typing import Any, Dict
 
 import jwt
+
+from shared.security.vault.key_manager import APIKeyManager
 
 SERVICE_JWT_SECRET = "SERVICE_JWT_SECRET"
 SERVICE_NAME = "SERVICE_NAME"
@@ -16,11 +19,28 @@ class AuthError(Exception):
     """Raised on authentication failures."""
 
 
+_key_manager: "APIKeyManager | None" = None
+_secret_cache = ""
+
+
+def set_key_manager(manager: "APIKeyManager") -> None:
+    """Override key manager, primarily for tests."""
+    global _key_manager
+    _key_manager = manager
+
+
 def _get_secret() -> str:
-    secret = os.getenv(SERVICE_JWT_SECRET)
-    if not secret:
-        raise AuthError("missing jwt secret")
-    return secret
+    global _secret_cache
+    if _secret_cache:
+        return _secret_cache
+    service = os.getenv(SERVICE_NAME, "unknown")
+    env = os.getenv("ENV", "dev")
+    manager = _key_manager or APIKeyManager()
+    try:
+        _secret_cache = asyncio.run(manager.rotate(service, env, "jwt_secret"))
+        return _secret_cache
+    except Exception as exc:
+        raise AuthError("missing jwt secret") from exc
 
 
 def generate_token(service: str, ttl: int = 300) -> str:
@@ -45,15 +65,24 @@ class JWTTokenManager:
 
     def __init__(self, service: str, key_manager: Any | None = None) -> None:
         self.service = service
-        self._key_manager = key_manager
+        self._key_manager = key_manager or APIKeyManager()
+        self._secret = ""
 
     async def refresh(self) -> None:
         """Refresh secret using key manager if available."""
-        if not self._key_manager:
-            return
-        new_secret = await self._key_manager.rotate(self.service, os.getenv("ENV", "dev"), "jwt_secret")
-        os.environ[SERVICE_JWT_SECRET] = new_secret
+        new_secret = await self._key_manager.rotate(
+            self.service, os.getenv("ENV", "dev"), "jwt_secret"
+        )
+        self._secret = new_secret
+        global _secret_cache
+        _secret_cache = new_secret
 
     def token(self, ttl: int = 300) -> str:
         """Generate a token using current secret."""
-        return generate_token(self.service, ttl)
+        if not self._secret:
+            asyncio.run(self.refresh())
+        return jwt.encode(
+            {"iss": self.service, "exp": int(time.time()) + ttl},
+            self._secret,
+            algorithm="HS256",
+        )
