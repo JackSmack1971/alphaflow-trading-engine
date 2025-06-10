@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/alphaflow-trading/market-data/auth"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/alphaflow-trading/market-data/config"
@@ -28,8 +32,29 @@ func main() {
 	}
 
 	go func() {
-		http.Handle("/metrics", promhttp.Handler())
-		http.ListenAndServe(":2112", nil)
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+		secret := os.Getenv("SERVICE_JWT_SECRET")
+		service := os.Getenv("SERVICE_NAME")
+		handler := auth.Middleware(secret, service)(mux)
+		srv := &http.Server{
+			Addr:              ":2112",
+			Handler:           handler,
+			ReadHeaderTimeout: 5 * time.Second,
+		}
+		cert := os.Getenv("TLS_CERT_FILE")
+		key := os.Getenv("TLS_KEY_FILE")
+		ca := os.Getenv("TLS_CA_FILE")
+		if cert != "" && key != "" && ca != "" {
+			srv.TLSConfig = authTLSConfig(ca)
+			if err := srv.ListenAndServeTLS(cert, key); err != nil {
+				log.Printf("https server error: %v", err)
+			}
+		} else {
+			if err := srv.ListenAndServe(); err != nil {
+				log.Printf("http server error: %v", err)
+			}
+		}
 	}()
 
 	sig := make(chan os.Signal, 1)
@@ -37,4 +62,13 @@ func main() {
 	<-sig
 	client.Stop()
 	pub.Publish(context.Background(), []byte("shutdown"))
+}
+
+func authTLSConfig(ca string) *tls.Config {
+	certPool := x509.NewCertPool()
+	caData, err := os.ReadFile(ca)
+	if err == nil {
+		certPool.AppendCertsFromPEM(caData)
+	}
+	return &tls.Config{ClientCAs: certPool, ClientAuth: tls.RequireAndVerifyClientCert}
 }

@@ -8,3 +8,4 @@ hvac
 watchdog
 pytest-asyncio
 opentelemetry-sdk
+PyJWT

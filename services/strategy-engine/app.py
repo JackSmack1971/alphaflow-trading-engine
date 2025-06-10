@@ -12,6 +12,7 @@ import pandas as pd
 import redis.asyncio as aioredis
 from fastapi import FastAPI, HTTPException, Request
 from shared.validation.fastapi import ValidationMiddleware
+from shared.security.auth.fastapi import AuthMiddleware
 from pydantic import BaseModel, Field
 
 from .strategies.base import BaseStrategy
@@ -49,6 +50,8 @@ class StrategyManager:
 
 manager = StrategyManager()
 app = FastAPI()
+app.state.service_name = os.getenv("SERVICE_NAME", "strategy-engine")
+app.add_middleware(AuthMiddleware)
 app.add_middleware(ValidationMiddleware, schemas={"/strategies": "strategy_request"})
 
 
