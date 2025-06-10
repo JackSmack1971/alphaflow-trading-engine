@@ -48,3 +48,9 @@ test-risk-scenarios:
 
 test-emergency-stops:
 	PYTHONPATH=. pytest tests/risk_manager/test_circuit_breaker.py --cov='services/risk-manager' --cov-report=term-missing
+
+security-scan:
+	gitleaks detect --no-git --config=gitleaks.toml
+
+test-vault-rotation:
+	PYTHONPATH=. pytest tests/security --cov=shared/security --cov-report=term-missing
