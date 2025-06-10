@@ -1,0 +1,12 @@
+{
+  "title": "System Health",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Latency",
+      "targets": [
+        {"expr": "request_latency_ms"}
+      ]
+    }
+  ]
+}

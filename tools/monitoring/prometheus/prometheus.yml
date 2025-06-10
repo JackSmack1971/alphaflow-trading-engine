@@ -1,0 +1,12 @@
+scrape_configs:
+  - job_name: 'trading-engine'
+    static_configs:
+      - targets: ['localhost:8000']
+  - job_name: 'system'
+    static_configs:
+      - targets: ['localhost:9100']
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'localhost:9093'

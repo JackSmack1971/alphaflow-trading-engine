@@ -1,0 +1,12 @@
+{
+  "title": "Trading Performance",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "P&L",
+      "targets": [
+        {"expr": "pnl_realized_usd{strategy='all'}"}
+      ]
+    }
+  ]
+}

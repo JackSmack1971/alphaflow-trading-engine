@@ -1,0 +1,34 @@
+# Alert rules for AlphaFlow Trading Engine
+- alert: TradingAnomaly
+  expr: pnl_realized_usd < -1000
+  for: 5m
+  labels:
+    severity: critical
+  annotations:
+    summary: "Unusual trading losses detected"
+- alert: HighLatency
+  expr: request_latency_ms > 200
+  for: 2m
+  labels:
+    severity: warning
+  annotations:
+    summary: "Service latency above threshold"
+- alert: RiskLimitBreach
+  expr: risk_limit_breached == 1
+  labels:
+    severity: critical
+  annotations:
+    summary: "Risk limit breach"
+- alert: MarketDataLag
+  expr: market_data_lag_seconds > 5
+  labels:
+    severity: warning
+  annotations:
+    summary: "Market data feed lagging"
+- alert: SLAUptime
+  expr: up == 0
+  for: 1m
+  labels:
+    severity: critical
+  annotations:
+    summary: "Service down"
