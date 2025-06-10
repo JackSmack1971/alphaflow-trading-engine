@@ -1,4 +1,4 @@
-.PHONY: setup lint test validate-structure docker-up generate-protos test-shared validate-config test-vault-integration test-market-data benchmark-throughput
+.PHONY: setup lint test validate-structure docker-up generate-protos test-shared validate-config test-vault-integration test-market-data benchmark-throughput test-execution test-api-integration
 
 setup:
 	pip install --upgrade pip
@@ -37,3 +37,8 @@ test-strategies:
 		PYTHONPATH=. pytest tests/strategy_engine --cov=services/strategy-engine --cov-report=term-missing
 backtest-validation:
 		PYTHONPATH=. pytest tests/strategy_engine/test_backtesting.py --cov=services/strategy-engine/backtesting --cov-report=term-missing
+
+test-execution:
+	cd services/order-execution && go test ./... -cover
+test-api-integration:
+	cd services/order-execution && go test ./api -cover -run Integration
