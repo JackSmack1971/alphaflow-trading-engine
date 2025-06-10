@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Optional
+from typing import Dict, Optional
 
 from .base import BaseLimit, Order
 from ..monitors.portfolio import Portfolio
@@ -15,7 +15,9 @@ class PositionLimit(BaseLimit):
         self.symbol_limit = symbol_limit
         self.total_limit = total_limit
 
-    def check(self, order: Order, portfolio: Portfolio) -> Optional[str]:
+    def check(
+        self, order: Order, portfolio: Portfolio, prices: Dict[str, Decimal]
+    ) -> Optional[str]:
         sym_qty = portfolio.positions.get(order.symbol, None)
         current = sym_qty.quantity if sym_qty else Decimal("0")
         if abs(current + order.quantity) > self.symbol_limit:

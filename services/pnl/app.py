@@ -59,6 +59,11 @@ class PnLService:
         self.positions: Dict[str, Position] = {}
         self.history: List[Dict[str, float]] = []
 
+    @property
+    def prices(self) -> Dict[str, Decimal]:
+        """Current marked prices for all positions."""
+        return {sym: pos.last_price for sym, pos in self.positions.items()}
+
     def on_fill(self, symbol: str, qty: Decimal, price: Decimal) -> None:
         pos = self.positions.setdefault(symbol, Position())
         pos.update(qty, price)

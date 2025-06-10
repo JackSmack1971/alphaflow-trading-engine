@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import time
 from collections import deque
-from typing import Deque, Optional
+from typing import Deque, Dict, Optional
 
 from .base import BaseLimit, Order
 from ..monitors.portfolio import Portfolio
@@ -17,7 +17,9 @@ class VelocityLimit(BaseLimit):
         self.window_sec = window_sec
         self.history: Deque[float] = deque()
 
-    def check(self, order: Order, portfolio: Portfolio) -> Optional[str]:
+    def check(
+        self, order: Order, portfolio: Portfolio, prices: Dict[str, Decimal]
+    ) -> Optional[str]:
         now = time.time()
         self.history.append(now)
         while self.history and now - self.history[0] > self.window_sec:
