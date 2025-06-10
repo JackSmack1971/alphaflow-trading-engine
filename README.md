@@ -18,3 +18,18 @@ AlphaFlow is a modular algorithmic trading bot. The repository is organized into
 ## Security
 
 No real API keys are stored in the repository. Use environment variables and the provided `.env.example` template. Pre-commit hooks include secret scanning using `detect-secrets`.
+
+## Monitoring
+
+The `tools/monitoring` directory contains configuration for Prometheus, Grafana,
+OpenTelemetry, and alerting rules. Deploy the stack with:
+
+```bash
+make deploy-monitoring
+```
+
+Run alert rule tests with:
+
+```bash
+make test-alerts
+```

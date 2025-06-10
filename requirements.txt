@@ -7,3 +7,4 @@ pyyaml
 hvac
 watchdog
 pytest-asyncio
+opentelemetry-sdk

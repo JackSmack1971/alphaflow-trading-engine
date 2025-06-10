@@ -54,3 +54,9 @@ security-scan:
 
 test-vault-rotation:
 	PYTHONPATH=. pytest tests/security --cov=shared/security --cov-report=term-missing
+
+deploy-monitoring:
+	python tools/scripts/deploy_monitoring.py
+
+test-alerts:
+	python tools/scripts/test_alerts.py
