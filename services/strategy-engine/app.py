@@ -53,7 +53,12 @@ app = FastAPI()
 @app.post("/strategies")
 async def add_strategy(req: StrategyRequest) -> Dict[str, str]:
     try:
-        strat = load_strategy(req.path, req.path.split(".")[-1], req.position_size, **req.params)
+        strat = load_strategy(
+            req.path,
+            req.path.split(".")[-1],
+            req.position_size,
+            **req.params,
+        )
     except LoaderError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     manager.add(req.path, strat)
