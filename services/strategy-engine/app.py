@@ -10,7 +10,8 @@ from typing import Dict, List
 import backoff
 import pandas as pd
 import redis.asyncio as aioredis
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from shared.validation.fastapi import ValidationMiddleware
 from pydantic import BaseModel, Field
 
 from .strategies.base import BaseStrategy
@@ -48,16 +49,19 @@ class StrategyManager:
 
 manager = StrategyManager()
 app = FastAPI()
+app.add_middleware(ValidationMiddleware, schemas={"/strategies": "strategy_request"})
 
 
 @app.post("/strategies")
-async def add_strategy(req: StrategyRequest) -> Dict[str, str]:
+async def add_strategy(req: StrategyRequest, request: Request) -> Dict[str, str]:
+    data = request.scope.get("state", {}).get("validated")
+    payload = data or req.dict()
     try:
         strat = load_strategy(
-            req.path,
-            req.path.split(".")[-1],
-            req.position_size,
-            **req.params,
+            payload["path"],
+            payload["path"].split(".")[-1],
+            Decimal(payload["position_size"]),
+            **payload.get("params", {}),
         )
     except LoaderError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
