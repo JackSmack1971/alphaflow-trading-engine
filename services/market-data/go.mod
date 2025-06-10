@@ -8,7 +8,9 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt/v5 v5.2.0
+	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.0
+	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/prometheus/client_golang v1.15.1
 	github.com/stretchr/testify v1.8.4
 )

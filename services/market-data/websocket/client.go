@@ -2,21 +2,27 @@ package websocket
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
 
 	backoff "github.com/cenkalti/backoff/v4"
 	"github.com/gorilla/websocket"
 	"github.com/prometheus/client_golang/prometheus"
 
+	"github.com/alphaflow-trading/market-data/cache"
+	"github.com/alphaflow-trading/market-data/calendar"
 	"github.com/alphaflow-trading/market-data/config"
 	"github.com/alphaflow-trading/market-data/handlers"
 	"github.com/alphaflow-trading/market-data/publisher"
+	"github.com/alphaflow-trading/market-data/storage"
+	"github.com/alphaflow-trading/market-data/validation"
 )
 
 var (
@@ -37,6 +43,11 @@ type Client struct {
 	conn   *websocket.Conn
 	ctx    context.Context
 	cancel context.CancelFunc
+	val    *validation.Validator
+	store  *storage.Store
+	cache  *cache.Cache
+	cal    calendar.Calendar
+	log    *log.Logger
 }
 
 type subscribeMsg struct {
@@ -45,8 +56,20 @@ type subscribeMsg struct {
 	ID     int      `json:"id"`
 }
 
-func New(cfg *config.Config, pub publisher.Publisher) *Client {
-	return &Client{cfg: cfg, pub: pub}
+func New(cfg *config.Config, pub publisher.Publisher, path string) *Client {
+	cal, _ := calendar.New(cfg.MarketOpen, cfg.MarketClose)
+	id := uuid.NewString()
+	logger := log.New(os.Stdout, fmt.Sprintf("cid:%s ", id), log.LstdFlags)
+	store, _ := storage.New(path)
+	return &Client{
+		cfg:   cfg,
+		pub:   pub,
+		val:   validation.New(),
+		store: store,
+		cache: cache.New(time.Minute),
+		cal:   cal,
+		log:   logger,
+	}
 }
 
 func (c *Client) Start() error {
@@ -78,23 +101,29 @@ func (c *Client) connect() error {
 			fmt.Sprintf("%s@depth", s),
 			fmt.Sprintf("%s@trade", s))
 	}
-	base, err := url.Parse(c.cfg.BaseURL)
-	if err != nil {
-		return err
+	urls := []string{c.cfg.BaseURL}
+	if c.cfg.SecondaryURL != "" {
+		urls = append(urls, c.cfg.SecondaryURL)
 	}
-	u := url.URL{Scheme: base.Scheme, Host: base.Host, Path: "/stream"}
-	q := u.Query()
-	q.Set("streams", strings.Join(streams, "/"))
-	u.RawQuery = q.Encode()
-
-	conn, _, err := websocket.DefaultDialer.DialContext(c.ctx, u.String(), nil)
-	if err != nil {
-		connectedGauge.Set(0)
-		return err
+	for _, baseURL := range urls {
+		base, err := url.Parse(baseURL)
+		if err != nil {
+			continue
+		}
+		u := url.URL{Scheme: base.Scheme, Host: base.Host, Path: "/stream"}
+		q := u.Query()
+		q.Set("streams", strings.Join(streams, "/"))
+		u.RawQuery = q.Encode()
+		conn, _, err := websocket.DefaultDialer.DialContext(c.ctx, u.String(), nil)
+		if err == nil {
+			connectedGauge.Set(1)
+			c.conn = conn
+			return nil
+		}
+		c.log.Printf("connect error to %s: %v", baseURL, err)
 	}
-	connectedGauge.Set(1)
-	c.conn = conn
-	return nil
+	connectedGauge.Set(0)
+	return fmt.Errorf("all connections failed")
 }
 
 func (c *Client) read() {
@@ -115,16 +144,25 @@ func (c *Client) read() {
 }
 
 func (c *Client) handleMessage(msg []byte) {
-	if !json.Valid(msg) {
+	if !c.cal.IsOpen(time.Now()) {
 		return
 	}
-	normalized, err := handlers.Normalize(msg)
+	out, symbol, err := c.val.Validate(msg)
 	if err != nil {
-		log.Printf("normalize error: %v", err)
+		c.log.Printf("validation error: %v", err)
 		return
 	}
+	normalized, err := handlers.Normalize(out)
+	if err != nil {
+		c.log.Printf("normalize error: %v", err)
+		return
+	}
+	if err := c.store.Save(symbol, normalized); err != nil {
+		c.log.Printf("store error: %v", err)
+	}
+	c.cache.Set(symbol, normalized)
 	if err := c.pub.Publish(c.ctx, normalized); err != nil {
-		log.Printf("publish error: %v", err)
+		c.log.Printf("publish error: %v", err)
 	}
 }
 
@@ -133,6 +171,9 @@ func (c *Client) Stop() {
 	c.mu.Lock()
 	if c.conn != nil {
 		c.conn.Close()
+	}
+	if c.store != nil {
+		c.store.DB().Close()
 	}
 	c.mu.Unlock()
 }

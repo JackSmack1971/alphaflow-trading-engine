@@ -26,7 +26,7 @@ func main() {
 	}
 
 	pub := publisher.NewRedisPublisher(cfg.RedisAddr, cfg.Channel)
-	client := ws.New(cfg, pub)
+	client := ws.New(cfg, pub, "marketdata.db")
 	if err := client.Start(); err != nil {
 		log.Fatal(err)
 	}

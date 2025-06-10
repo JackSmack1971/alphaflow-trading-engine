@@ -25,21 +25,21 @@ func TestClientReceives(t *testing.T) {
 		up := websocket.Upgrader{}
 		c, _ := up.Upgrade(w, r, nil)
 		defer c.Close()
-		c.WriteMessage(websocket.TextMessage, []byte("{\"test\":1}"))
+		c.WriteMessage(websocket.TextMessage, []byte("{\"s\":\"BTCUSDT\",\"p\":100}"))
 		time.Sleep(50 * time.Millisecond)
 	}))
 	defer srv.Close()
 
 	url := "ws" + srv.URL[4:]
-	cfg := &config.Config{Symbols: []string{"btcusdt"}, BaseURL: url}
+	cfg := &config.Config{Symbols: []string{"btcusdt"}, BaseURL: url, MarketOpen: "00:00", MarketClose: "23:59"}
 	pub := &mockPublisher{msgs: make(chan []byte, 1)}
-	client := New(cfg, pub)
+	client := New(cfg, pub, ":memory:")
 	require.NoError(t, client.Start())
 	defer client.Stop()
 	select {
 	case <-time.After(time.Second):
 		t.Fatal("timeout")
 	case msg := <-pub.msgs:
-		require.JSONEq(t, "{\"test\":1}", string(msg))
+		require.JSONEq(t, "{\"s\":\"BTCUSDT\",\"p\":100}", string(msg))
 	}
 }
