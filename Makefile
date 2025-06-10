@@ -42,3 +42,9 @@ test-execution:
 	cd services/order-execution && go test ./... -cover
 test-api-integration:
 	cd services/order-execution && go test ./api -cover -run Integration
+
+test-risk-scenarios:
+	PYTHONPATH=. pytest tests/risk_manager/test_limits.py --cov='services/risk-manager' --cov-report=term-missing
+
+test-emergency-stops:
+	PYTHONPATH=. pytest tests/risk_manager/test_circuit_breaker.py --cov='services/risk-manager' --cov-report=term-missing
