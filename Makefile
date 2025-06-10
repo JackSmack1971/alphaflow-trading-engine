@@ -1,4 +1,4 @@
-.PHONY: setup lint test validate-structure docker-up generate-protos test-shared validate-config test-vault-integration
+.PHONY: setup lint test validate-structure docker-up generate-protos test-shared validate-config test-vault-integration test-market-data benchmark-throughput
 
 setup:
 	pip install --upgrade pip
@@ -25,4 +25,10 @@ test-shared:
 validate-config:
 	PYTHONPATH=. python tools/config-validator.py
 test-vault-integration:
-	PYTHONPATH=. pytest tests/config/test_vault.py --cov=shared/config --cov-report=term-missing
+PYTHONPATH=. pytest tests/config/test_vault.py --cov=shared/config --cov-report=term-missing
+
+test-market-data:
+	cd services/market-data && go test ./... -cover
+
+benchmark-throughput:
+	cd services/market-data && go test -bench=. ./...
