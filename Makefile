@@ -32,3 +32,8 @@ test-market-data:
 
 benchmark-throughput:
 	cd services/market-data && go test -bench=. ./...
+
+test-strategies:
+		PYTHONPATH=. pytest tests/strategy_engine --cov=services/strategy-engine --cov-report=term-missing
+backtest-validation:
+		PYTHONPATH=. pytest tests/strategy_engine/test_backtesting.py --cov=services/strategy-engine/backtesting --cov-report=term-missing

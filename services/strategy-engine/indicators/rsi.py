@@ -1,0 +1,16 @@
+"""RSI indicator."""
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+
+
+def rsi(series: pd.Series, window: int) -> pd.Series:
+    """Compute relative strength index."""
+    delta = series.diff()
+    gain = np.where(delta > 0, delta, 0)
+    loss = np.where(delta < 0, -delta, 0)
+    avg_gain = pd.Series(gain).rolling(window).mean()
+    avg_loss = pd.Series(loss).rolling(window).mean()
+    rs = avg_gain / avg_loss
+    return 100 - (100 / (1 + rs))

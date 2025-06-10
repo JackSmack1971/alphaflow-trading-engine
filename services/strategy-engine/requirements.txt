@@ -1,1 +1,6 @@
-# requirements for strategy-engine
+fastapi
+uvicorn
+pandas
+numpy
+redis
+backoff
