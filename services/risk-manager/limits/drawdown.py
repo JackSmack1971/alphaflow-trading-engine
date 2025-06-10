@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Optional
+from typing import Dict, Optional
 
 from .base import BaseLimit, Order
 from ..monitors.portfolio import Portfolio
@@ -15,7 +15,9 @@ class DrawdownLimit(BaseLimit):
         self.max_drawdown = max_drawdown
         self.high_watermark = Decimal("0")
 
-    def check(self, order: Order, portfolio: Portfolio) -> Optional[str]:
+    def check(
+        self, order: Order, portfolio: Portfolio, prices: Dict[str, Decimal]
+    ) -> Optional[str]:
         pnl = portfolio.pnl
         if pnl > self.high_watermark:
             self.high_watermark = pnl

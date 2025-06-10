@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Optional
+from typing import Dict, Optional
 
 from ..monitors.portfolio import Portfolio
 
@@ -23,6 +23,8 @@ class BaseLimit(ABC):
     """Interface for all risk limits."""
 
     @abstractmethod
-    def check(self, order: Order, portfolio: Portfolio) -> Optional[str]:
+    def check(
+        self, order: Order, portfolio: Portfolio, prices: Dict[str, Decimal]
+    ) -> Optional[str]:
         """Return reason string if breached."""
 
